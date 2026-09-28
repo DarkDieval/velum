@@ -1,3 +1,0 @@
-MONGODB_URI=mongodb+srv://velum-admin:NY4w0AdXAvIdYjq3@cluster0.ocotlnq.mongodb.net/velum_db?retryWrites=true&w=majority
-JWT_SECRET=velum_es_el_mejor_gestor_de_contrasenas_2026
-NODE_ENV=development
