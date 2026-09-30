@@ -1,6 +1,5 @@
 const VaultItem = require('../models/VaultItem');
 
-// GET /api/vault - Obtener todos los blobs del usuario autenticado
 const getVaultItems = async (req, res, next) => {
   try {
     const items = await VaultItem.find({ user: req.user._id }).sort({ createdAt: -1 });
@@ -10,12 +9,11 @@ const getVaultItems = async (req, res, next) => {
   }
 };
 
-// POST /api/vault - Guardar un nuevo blob cifrado
 const createVaultItem = async (req, res, next) => {
   try {
-    const { encryptedData, iv, salt } = req.body;
+    const { encryptedData, iv } = req.body;
 
-    if (!encryptedData || !iv || !salt) {
+    if (!encryptedData || !iv) {
       return res.status(400).json({ message: 'Faltan datos cifrados' });
     }
 
@@ -23,7 +21,6 @@ const createVaultItem = async (req, res, next) => {
       user: req.user._id,
       encryptedData,
       iv,
-      salt,
     });
 
     res.status(201).json(item);
@@ -32,7 +29,6 @@ const createVaultItem = async (req, res, next) => {
   }
 };
 
-// DELETE /api/vault/:id - Eliminar un blob (solo si es del usuario)
 const deleteVaultItem = async (req, res, next) => {
   try {
     const item = await VaultItem.findById(req.params.id);
@@ -41,7 +37,6 @@ const deleteVaultItem = async (req, res, next) => {
       return res.status(404).json({ message: 'Elemento no encontrado' });
     }
 
-    // Verificación crítica: solo el dueño puede borrar su propio blob
     if (item.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'No autorizado' });
     }

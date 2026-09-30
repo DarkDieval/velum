@@ -8,7 +8,6 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Todas las rutas de /api/vault están protegidas por JWT
 router.use(protect);
 
 router.get('/', getVaultItems);

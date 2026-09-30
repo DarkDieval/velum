@@ -18,7 +18,12 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      minlength: [12, 'La contraseña debe tener al menos 12 caracteres'],
       select: false,
+    },
+    salt: {
+      type: String,
+      required: true,
     },
   },
   {
@@ -26,14 +31,12 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Middleware moderno (sin next)
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  const bcryptSalt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, bcryptSalt);
 });
 
-// Método para comparar contraseñas
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
