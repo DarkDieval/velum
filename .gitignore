@@ -6,3 +6,6 @@ dist/
 build/
 *.swp
 y
+*.save
+*.swp
+*.swo
