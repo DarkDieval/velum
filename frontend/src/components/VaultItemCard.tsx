@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { VaultItemDecrypted } from '../api/vault';
+import { useState } from "react";
+import type { VaultItemDecrypted } from "../api/vault";
 
 interface VaultItemCardProps {
   item: VaultItemDecrypted;
@@ -11,13 +11,30 @@ export const VaultItemCard = ({ item, onDelete }: VaultItemCardProps) => {
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    alert('Copiado al portapapeles');
+    alert("Copiado al portapapeles");
+  };
+
+  // Formatear la fecha
+  const formatDate = (isoDate: string) => {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("es-CO", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
     <div className="vault-card">
       <div className="vault-card-header">
-        <h3 className="vault-card-title">{item.data.title}</h3>
+        <div>
+          <h3 className="vault-card-title">{item.data.title}</h3>
+          {item.data.folder && (
+            <span className="vault-card-folder">📁 {item.data.folder}</span>
+          )}
+        </div>
         <button
           className="vault-card-delete"
           onClick={() => onDelete(item._id)}
@@ -41,13 +58,13 @@ export const VaultItemCard = ({ item, onDelete }: VaultItemCardProps) => {
       <div className="vault-card-field">
         <span className="vault-card-label">Contraseña:</span>
         <span className="vault-card-value">
-          {showPassword ? item.data.password : '••••••••••'}
+          {showPassword ? item.data.password : "••••••••••"}
         </span>
         <button
           className="vault-card-copy"
           onClick={() => setShowPassword(!showPassword)}
         >
-          {showPassword ? 'Ocultar' : 'Mostrar'}
+          {showPassword ? "Ocultar" : "Mostrar"}
         </button>
         <button
           className="vault-card-copy"
@@ -74,6 +91,10 @@ export const VaultItemCard = ({ item, onDelete }: VaultItemCardProps) => {
       {item.data.notes && (
         <div className="vault-card-notes">{item.data.notes}</div>
       )}
+
+      <div className="vault-card-date">
+        🕒 Agregado el {formatDate(item.createdAt)}
+      </div>
     </div>
   );
 };

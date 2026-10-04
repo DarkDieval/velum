@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "../context/useAuth";
 import {
   getVaultItems,
@@ -13,11 +13,16 @@ import { VaultItemForm } from "./VaultItemForm";
 import { VaultItemCard } from "./VaultItemCard";
 import "./Dashboard.css";
 
+type SortOption = "recent" | "oldest" | "az" | "za";
+
 export const Dashboard = () => {
   const { user, token, derivedKey, signout } = useAuth();
   const [items, setItems] = useState<VaultItemDecrypted[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
 
   const loadItems = useCallback(async () => {
     if (!token || !derivedKey) return;
@@ -74,6 +79,58 @@ export const Dashboard = () => {
     await loadItems();
   };
 
+  const folders = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((item) => {
+      if (item.data.folder) set.add(item.data.folder);
+    });
+    return Array.from(set).sort();
+  }, [items]);
+
+  const filteredAndSortedItems = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    const filtered = items.filter((item) => {
+      const matchesSearch =
+        !term ||
+        item.data.title.toLowerCase().includes(term) ||
+        item.data.username.toLowerCase().includes(term);
+      const matchesFolder = !activeFolder || item.data.folder === activeFolder;
+      return matchesSearch && matchesFolder;
+    });
+
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case "recent":
+        sorted.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        break;
+      case "oldest":
+        sorted.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+        break;
+      case "az":
+        sorted.sort((a, b) =>
+          a.data.title.localeCompare(b.data.title, "es", {
+            sensitivity: "base",
+          }),
+        );
+        break;
+      case "za":
+        sorted.sort((a, b) =>
+          b.data.title.localeCompare(a.data.title, "es", {
+            sensitivity: "base",
+          }),
+        );
+        break;
+    }
+    return sorted;
+  }, [items, search, activeFolder, sortBy]);
+
   return (
     <div className="dashboard">
       <header className="dashboard-header">
@@ -91,7 +148,51 @@ export const Dashboard = () => {
           <button className="btn-primary" onClick={() => setShowForm(true)}>
             + Agregar contraseña
           </button>
+
+          <input
+            type="search"
+            placeholder="Buscar por título o usuario..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="dashboard-search"
+          />
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="dashboard-sort"
+          >
+            <option value="recent">Más recientes</option>
+            <option value="oldest">Más antiguos</option>
+            <option value="az">A - Z</option>
+            <option value="za">Z - A</option>
+          </select>
         </div>
+
+        {folders.length > 0 && (
+          <div className="dashboard-folders">
+            <button
+              className={`folder-chip ${activeFolder === null ? "active" : ""}`}
+              onClick={() => setActiveFolder(null)}
+            >
+              Todos ({items.length})
+            </button>
+            {folders.map((folder) => {
+              const count = items.filter(
+                (i) => i.data.folder === folder,
+              ).length;
+              return (
+                <button
+                  key={folder}
+                  className={`folder-chip ${activeFolder === folder ? "active" : ""}`}
+                  onClick={() => setActiveFolder(folder)}
+                >
+                  📁 {folder} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {loading ? (
           <p className="dashboard-message">Cargando tus contraseñas...</p>
@@ -99,9 +200,11 @@ export const Dashboard = () => {
           <p className="dashboard-message">
             Aún no tienes contraseñas guardadas. ¡Agrega la primera!
           </p>
+        ) : filteredAndSortedItems.length === 0 ? (
+          <p className="dashboard-message">No se encontraron resultados.</p>
         ) : (
           <div className="vault-grid">
-            {items.map((item) => (
+            {filteredAndSortedItems.map((item) => (
               <VaultItemCard
                 key={item._id}
                 item={item}
@@ -127,6 +230,7 @@ export const Dashboard = () => {
             <VaultItemForm
               onSubmit={handleAddItem}
               onCancel={() => setShowForm(false)}
+              existingFolders={folders}
             />
           </div>
         </div>

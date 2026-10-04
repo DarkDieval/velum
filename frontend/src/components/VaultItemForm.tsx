@@ -5,15 +5,21 @@ import type { VaultItemData } from "../api/vault";
 interface VaultItemFormProps {
   onSubmit: (data: VaultItemData) => Promise<void>;
   onCancel: () => void;
+  existingFolders?: string[];
 }
 
-export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
+export const VaultItemForm = ({
+  onSubmit,
+  onCancel,
+  existingFolders = [],
+}: VaultItemFormProps) => {
   const [form, setForm] = useState<VaultItemData>({
     title: "",
     username: "",
     password: "",
     url: "",
     notes: "",
+    folder: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,6 +48,7 @@ export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
         required
         className="vault-input"
       />
+
       <input
         type="text"
         placeholder="Usuario"
@@ -80,6 +87,21 @@ export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
         onChange={(e) => handleChange("url", e.target.value)}
         className="vault-input"
       />
+
+      <input
+        type="text"
+        placeholder="Bolsillo (ej. Trabajo, Personal, Finanzas)"
+        value={form.folder}
+        onChange={(e) => handleChange("folder", e.target.value)}
+        list="existing-folders"
+        className="vault-input"
+      />
+      <datalist id="existing-folders">
+        {existingFolders.map((folder) => (
+          <option key={folder} value={folder} />
+        ))}
+      </datalist>
+
       <textarea
         placeholder="Notas (opcional)"
         value={form.notes}
