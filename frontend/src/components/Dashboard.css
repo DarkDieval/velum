@@ -165,3 +165,31 @@
   gap: 1rem;
   justify-content: flex-end;
 }
+
+.vault-password-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.vault-password-group .vault-input {
+  flex: 1;
+  padding-right: 90px;
+}
+
+.vault-password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.vault-password-toggle:hover {
+  background: rgba(199, 125, 255, 0.1);
+}

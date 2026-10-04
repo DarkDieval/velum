@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import type { SyntheticEvent } from 'react';
-import type { VaultItemData } from '../api/vault';
+import { useState } from "react";
+import type { SyntheticEvent } from "react";
+import type { VaultItemData } from "../api/vault";
 
 interface VaultItemFormProps {
   onSubmit: (data: VaultItemData) => Promise<void>;
@@ -9,12 +9,13 @@ interface VaultItemFormProps {
 
 export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
   const [form, setForm] = useState<VaultItemData>({
-    title: '',
-    username: '',
-    password: '',
-    url: '',
-    notes: '',
+    title: "",
+    username: "",
+    password: "",
+    url: "",
+    notes: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (field: keyof VaultItemData, value: string) => {
@@ -37,7 +38,7 @@ export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
         type="text"
         placeholder="Título (ej. Gmail)"
         value={form.title}
-        onChange={(e) => handleChange('title', e.target.value)}
+        onChange={(e) => handleChange("title", e.target.value)}
         required
         className="vault-input"
       />
@@ -45,30 +46,44 @@ export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
         type="text"
         placeholder="Usuario"
         value={form.username}
-        onChange={(e) => handleChange('username', e.target.value)}
+        onChange={(e) => handleChange("username", e.target.value)}
         required
         className="vault-input"
       />
-      <input
-        type="text"
-        placeholder="Contraseña"
-        value={form.password}
-        onChange={(e) => handleChange('password', e.target.value)}
-        required
-        autoComplete="new-password"
-        className="vault-input"
-      />
+
+      <div className="vault-password-group">
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="Contraseña"
+          value={form.password}
+          onChange={(e) => handleChange("password", e.target.value)}
+          required
+          autoComplete="new-password"
+          className="vault-input"
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="vault-password-toggle"
+          aria-label={
+            showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+          }
+        >
+          {showPassword ? "Ocultar" : "Mostrar"}
+        </button>
+      </div>
+
       <input
         type="url"
         placeholder="URL (opcional)"
         value={form.url}
-        onChange={(e) => handleChange('url', e.target.value)}
+        onChange={(e) => handleChange("url", e.target.value)}
         className="vault-input"
       />
       <textarea
         placeholder="Notas (opcional)"
         value={form.notes}
-        onChange={(e) => handleChange('notes', e.target.value)}
+        onChange={(e) => handleChange("notes", e.target.value)}
         className="vault-input vault-textarea"
         rows={3}
       />
@@ -78,7 +93,7 @@ export const VaultItemForm = ({ onSubmit, onCancel }: VaultItemFormProps) => {
           Cancelar
         </button>
         <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Guardando...' : 'Guardar'}
+          {loading ? "Guardando..." : "Guardar"}
         </button>
       </div>
     </form>
