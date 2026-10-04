@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { SyntheticEvent } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import "./AuthModal.css";
 
 interface AuthModalProps {
@@ -21,16 +21,6 @@ export const AuthModal = ({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setMode(initialMode);
-      setError("");
-      setName("");
-      setEmail("");
-      setPassword("");
-    }
-  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 

@@ -1,4 +1,4 @@
-const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_ITERATIONS = 600000;
 const KEY_LENGTH = 256;
 const IV_LENGTH = 12;
 
@@ -11,7 +11,7 @@ const hexToBytes = (hex: string): Uint8Array => {
 };
 
 const bytesToBase64 = (bytes: Uint8Array): string => {
-  let binary = '';
+  let binary = "";
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
@@ -27,45 +27,48 @@ const base64ToBytes = (base64: string): Uint8Array => {
   return bytes;
 };
 
-export const deriveKey = async (password: string, salt: string): Promise<CryptoKey> => {
+export const deriveKey = async (
+  password: string,
+  salt: string,
+): Promise<CryptoKey> => {
   const encoder = new TextEncoder();
   const passwordBuffer = encoder.encode(password) as BufferSource;
   const saltBytes = hexToBytes(salt) as BufferSource;
 
   const baseKey = await window.crypto.subtle.importKey(
-    'raw',
+    "raw",
     passwordBuffer,
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveKey']
+    ["deriveKey"],
   );
 
   return window.crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt: saltBytes,
       iterations: PBKDF2_ITERATIONS,
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     baseKey,
-    { name: 'AES-GCM', length: KEY_LENGTH },
+    { name: "AES-GCM", length: KEY_LENGTH },
     false,
-    ['encrypt', 'decrypt']
+    ["encrypt", "decrypt"],
   );
 };
 
 export const encryptData = async (
   key: CryptoKey,
-  data: object
+  data: object,
 ): Promise<{ encryptedData: string; iv: string }> => {
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(JSON.stringify(data)) as BufferSource;
   const iv = window.crypto.getRandomValues(new Uint8Array(IV_LENGTH));
 
   const ciphertext = await window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv as BufferSource },
+    { name: "AES-GCM", iv: iv as BufferSource },
     key,
-    plaintext
+    plaintext,
   );
 
   return {
@@ -77,15 +80,15 @@ export const encryptData = async (
 export const decryptData = async <T>(
   key: CryptoKey,
   encryptedData: string,
-  iv: string
+  iv: string,
 ): Promise<T> => {
   const ciphertext = base64ToBytes(encryptedData) as BufferSource;
   const ivBytes = base64ToBytes(iv) as BufferSource;
 
   const plaintext = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: ivBytes },
+    { name: "AES-GCM", iv: ivBytes },
     key,
-    ciphertext
+    ciphertext,
   );
 
   const decoder = new TextDecoder();

@@ -1,49 +1,35 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { ReactNode } from 'react';
-import { signupRequest, signinRequest } from '../api/auth';
-import type { User, Credentials } from '../api/auth';
-import { deriveKey } from '../crypto/crypto';
+import { useState, useCallback } from "react";
+import type { ReactNode } from "react";
+import { signupRequest, signinRequest } from "../api/auth";
+import type { User, Credentials } from "../api/auth";
+import { deriveKey, decryptData } from "../crypto/crypto";
+import { getVaultItems } from "../api/vault";
+import { AuthContext } from "./authContextDefinition";
 
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  derivedKey: CryptoKey | null;
-  isAuthenticated: boolean;
-  isVaultLocked: boolean;
-  signup: (data: Credentials) => Promise<void>;
-  signin: (data: Credentials) => Promise<void>;
-  signout: () => void;
-  unlock: (password: string) => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const TOKEN_KEY = 'velum_token';
-const USER_KEY = 'velum_user';
+const TOKEN_KEY = "velum_token";
+const USER_KEY = "velum_user";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem(USER_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem(TOKEN_KEY),
+  );
   const [derivedKey, setDerivedKey] = useState<CryptoKey | null>(null);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    const storedUser = localStorage.getItem(USER_KEY);
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  const handleAuthSuccess = useCallback(async (authToken: string, authUser: User, password: string) => {
-    const key = await deriveKey(password, authUser.salt);
-    localStorage.setItem(TOKEN_KEY, authToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(authUser));
-    setToken(authToken);
-    setUser(authUser);
-    setDerivedKey(key);
-  }, []);
+  const handleAuthSuccess = useCallback(
+    async (authToken: string, authUser: User, password: string) => {
+      const key = await deriveKey(password, authUser.salt);
+      localStorage.setItem(TOKEN_KEY, authToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(authUser));
+      setToken(authToken);
+      setUser(authUser);
+      setDerivedKey(key);
+    },
+    [],
+  );
 
   const signup = async (data: Credentials) => {
     const result = await signupRequest(data);
@@ -56,9 +42,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const unlock = async (password: string) => {
-    if (!user) throw new Error('No hay usuario');
+    if (!user || !token) throw new Error("No hay usuario");
+
     const key = await deriveKey(password, user.salt);
-    setDerivedKey(key);
+
+    try {
+      const items = await getVaultItems(token);
+      if (items.length > 0) {
+        await decryptData(key, items[0].encryptedData, items[0].iv);
+      }
+      setDerivedKey(key);
+    } catch {
+      throw new Error("Contraseña maestra incorrecta");
+    }
   };
 
   const signout = () => {
@@ -86,10 +82,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
-  return context;
 };

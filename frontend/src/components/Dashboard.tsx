@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../context/useAuth";
 import {
   getVaultItems,
   createVaultItem,
@@ -7,11 +7,11 @@ import {
   type VaultItemEncrypted,
   type VaultItemDecrypted,
   type VaultItemData,
-} from '../api/vault';
-import { encryptData, decryptData } from '../crypto/crypto';
-import { VaultItemForm } from './VaultItemForm';
-import { VaultItemCard } from './VaultItemCard';
-import './Dashboard.css';
+} from "../api/vault";
+import { encryptData, decryptData } from "../crypto/crypto";
+import { VaultItemForm } from "./VaultItemForm";
+import { VaultItemCard } from "./VaultItemCard";
+import "./Dashboard.css";
 
 export const Dashboard = () => {
   const { user, token, derivedKey, signout } = useAuth();
@@ -30,16 +30,20 @@ export const Dashboard = () => {
             const data = await decryptData<VaultItemData>(
               derivedKey,
               item.encryptedData,
-              item.iv
+              item.iv,
             );
             return { ...item, data };
           } catch {
             return {
               ...item,
-              data: { title: '⚠️ No se pudo descifrar', username: '', password: '' },
+              data: {
+                title: "⚠️ No se pudo descifrar",
+                username: "",
+                password: "",
+              },
             };
           }
-        })
+        }),
       );
       setItems(decrypted);
     } catch (err) {
@@ -50,7 +54,9 @@ export const Dashboard = () => {
   }, [token, derivedKey]);
 
   useEffect(() => {
-    loadItems();
+    queueMicrotask(() => {
+      loadItems();
+    });
   }, [loadItems]);
 
   const handleAddItem = async (data: VaultItemData) => {
@@ -63,7 +69,7 @@ export const Dashboard = () => {
 
   const handleDelete = async (id: string) => {
     if (!token) return;
-    if (!confirm('¿Seguro que quieres eliminar este item?')) return;
+    if (!confirm("¿Seguro que quieres eliminar este item?")) return;
     await deleteVaultItem(token, id);
     await loadItems();
   };
@@ -96,20 +102,32 @@ export const Dashboard = () => {
         ) : (
           <div className="vault-grid">
             {items.map((item) => (
-              <VaultItemCard key={item._id} item={item} onDelete={handleDelete} />
+              <VaultItemCard
+                key={item._id}
+                item={item}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
       </main>
 
       {showForm && (
-        <div className="modal-overlay" onMouseDown={(e) => {
-          if (e.target === e.currentTarget) setShowForm(false);
-        }}>
+        <div
+          className="modal-overlay"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setShowForm(false);
+          }}
+        >
           <div className="modal-content">
-            <button className="modal-close" onClick={() => setShowForm(false)}>×</button>
+            <button className="modal-close" onClick={() => setShowForm(false)}>
+              ×
+            </button>
             <h2 className="modal-title">Nueva contraseña</h2>
-            <VaultItemForm onSubmit={handleAddItem} onCancel={() => setShowForm(false)} />
+            <VaultItemForm
+              onSubmit={handleAddItem}
+              onCancel={() => setShowForm(false)}
+            />
           </div>
         </div>
       )}
