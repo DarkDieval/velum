@@ -1,30 +1,34 @@
-import { useState, useEffect } from 'react';
-import type { SyntheticEvent } from 'react';
-import { useAuth } from '../context/AuthContext';
-import './AuthModal.css';
+import { useState, useEffect } from "react";
+import type { SyntheticEvent } from "react";
+import { useAuth } from "../context/AuthContext";
+import "./AuthModal.css";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'signin' | 'signup';
+  initialMode?: "signin" | "signup";
 }
 
-export const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }: AuthModalProps) => {
+export const AuthModal = ({
+  isOpen,
+  onClose,
+  initialMode = "signin",
+}: AuthModalProps) => {
   const { signin, signup } = useAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
-      setError('');
-      setName('');
-      setEmail('');
-      setPassword('');
+      setError("");
+      setName("");
+      setEmail("");
+      setPassword("");
     }
   }, [isOpen, initialMode]);
 
@@ -32,26 +36,26 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
   const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      if (mode === 'signup') {
+      if (mode === "signup") {
         await signup({ name, email, password });
       } else {
         await signin({ email, password });
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
   const switchMode = () => {
-    setMode(mode === 'signin' ? 'signup' : 'signin');
-    setError('');
+    setMode(mode === "signin" ? "signup" : "signin");
+    setError("");
   };
 
   const handleOverlayMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -68,11 +72,11 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }: AuthModal
         </button>
 
         <h2 className="modal-title">
-          {mode === 'signin' ? 'Iniciar sesión' : 'Crear cuenta'}
+          {mode === "signin" ? "Iniciar sesión" : "Crear cuenta"}
         </h2>
 
         <form onSubmit={handleSubmit} className="modal-form">
-          {mode === 'signup' && (
+          {mode === "signup" && (
             <input
               type="text"
               placeholder="Nombre"
@@ -94,25 +98,40 @@ export const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
           <input
             type="password"
-            placeholder={mode === 'signup' ? 'Contraseña (mínimo 12 caracteres)' : 'Contraseña'}
+            placeholder={
+              mode === "signup"
+                ? "Contraseña (mínimo 12 caracteres)"
+                : "Contraseña"
+            }
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={mode === 'signup' ? 12 : undefined}
+            minLength={mode === "signup" ? 12 : undefined}
+            autoComplete={
+              mode === "signup" ? "new-password" : "current-password"
+            }
             className="modal-input"
           />
 
           {error && <p className="modal-error">{error}</p>}
 
           <button type="submit" disabled={loading} className="modal-submit">
-            {loading ? 'Cargando...' : mode === 'signin' ? 'Entrar' : 'Registrarme'}
+            {loading
+              ? "Cargando..."
+              : mode === "signin"
+                ? "Entrar"
+                : "Registrarme"}
           </button>
         </form>
 
         <p className="modal-switch">
-          {mode === 'signin' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
-          <button type="button" onClick={switchMode} className="modal-switch-btn">
-            {mode === 'signin' ? 'Regístrate' : 'Inicia sesión'}
+          {mode === "signin" ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
+          <button
+            type="button"
+            onClick={switchMode}
+            className="modal-switch-btn"
+          >
+            {mode === "signin" ? "Regístrate" : "Inicia sesión"}
           </button>
         </p>
       </div>

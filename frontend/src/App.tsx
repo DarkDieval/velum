@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthModal } from './components/AuthModal';
+import { UnlockVaultModal } from './components/UnlockVaultModal';
+import { Dashboard } from './components/Dashboard';
 import './App.css';
 
 const Home = () => {
-  const { isAuthenticated, user, signout } = useAuth();
+  const { isAuthenticated, isVaultLocked } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'signin' | 'signup'>('signin');
 
@@ -13,6 +15,14 @@ const Home = () => {
     setModalOpen(true);
   };
 
+  if (isAuthenticated && isVaultLocked) {
+    return <UnlockVaultModal isOpen={true} />;
+  }
+
+  if (isAuthenticated) {
+    return <Dashboard />;
+  }
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -20,23 +30,14 @@ const Home = () => {
         <h1 className="app-logo">VELUM</h1>
         <p className="app-tagline">Zero-Knowledge Password Manager</p>
 
-        {isAuthenticated ? (
-          <div className="auth-state">
-            <p className="welcome-text">Bienvenido, {user?.name}</p>
-            <button className="btn-secondary" onClick={signout}>
-              Cerrar sesión
-            </button>
-          </div>
-        ) : (
-          <div className="auth-actions">
-            <button className="btn-primary" onClick={() => openModal('signup')}>
-              Crear cuenta
-            </button>
-            <button className="btn-secondary" onClick={() => openModal('signin')}>
-              Iniciar sesión
-            </button>
-          </div>
-        )}
+        <div className="auth-actions">
+          <button className="btn-primary" onClick={() => openModal('signup')}>
+            Crear cuenta
+          </button>
+          <button className="btn-secondary" onClick={() => openModal('signin')}>
+            Iniciar sesión
+          </button>
+        </div>
       </header>
 
       <AuthModal
