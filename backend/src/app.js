@@ -9,6 +9,9 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
+// Confiar en el proxy (Nginx) para leer la IP real del cliente
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(
   cors({

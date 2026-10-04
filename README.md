@@ -249,3 +249,14 @@ Este es el enfoque que usan gestores como Bitwarden o 1Password cuando actualiza
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT.
+
+### Limitación conocida: Autenticación y Zero-Knowledge
+
+En el diseño **actual**, la contraseña maestra se envía al servidor durante `signin` (hasheada con bcrypt para verificar identidad). Esto significa que **técnicamente**, un servidor malicioso o comprometido podría derivar la clave de cifrado usando el `salt` del usuario y la contraseña maestra en claro. Este es un trade-off consciente de la versión de portafolio.
+
+La solución completa (que usan Bitwarden y 1Password) es **derivar dos valores distintos en el cliente**:
+
+1. `masterKey` = PBKDF2(contraseña maestra + email) → **nunca sale del navegador**, cifra los datos.
+2. `authHash` = PBKDF2(masterKey + contraseña maestra) → **solo este se envía al servidor** para autenticación.
+
+El servidor nunca ve ni la contraseña maestra ni la clave de cifrado. Está en el roadmap como mejora post-despliegue.
