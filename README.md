@@ -233,8 +233,8 @@ Este es el enfoque que usan gestores como Bitwarden o 1Password cuando actualiza
 - [x] Cifrado real con Web Crypto API
 - [x] Bolsillos (folders) y buscador
 - [ ] Despliegue en producción (Nginx + Certbot)
-- [ ] Auto-bloqueo por inactividad
-- [ ] Limpiar portapapeles tras 30s
+- [x] Auto-bloqueo por inactividad
+- [x] Limpiar portapapeles tras 30s
 
 ---
 
