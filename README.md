@@ -183,6 +183,23 @@ La app estará disponible en `http://localhost:5173`.
 
 ---
 
+### Nota sobre migración de datos
+
+Cuando se actualizan parámetros criptográficos (por ejemplo, las iteraciones de PBKDF2), los datos existentes quedan cifrados con la clave anterior y no pueden descifrarse con la nueva.
+
+En **Velum**, actualmente se aplica una migración limpia: los usuarios deben re-registrarse y volver a guardar sus ítems. Es aceptable en un proyecto de portafolio sin datos reales.
+
+En **producción con usuarios reales**, el patrón recomendado es una **migración con doble clave**:
+
+1. Guardar la versión de parámetros criptográficos junto con cada ítem.
+2. Al desbloquear, derivar la clave con los parámetros originales para descifrar ítems viejos.
+3. Re-cifrar los ítems con los parámetros nuevos.
+4. Guardar el cambio.
+
+Este es el enfoque que usan gestores como Bitwarden o 1Password cuando actualizan parámetros.
+
+---
+
 ## 📜 Scripts Disponibles
 
 ### Backend

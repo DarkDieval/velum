@@ -11,10 +11,17 @@ export const VaultItemCard = ({ item, onDelete }: VaultItemCardProps) => {
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    alert("Copiado al portapapeles");
+    alert("Copiado al portapapeles (se borrará en 30 segundos)");
+
+    setTimeout(async () => {
+      const current = await navigator.clipboard.readText().catch(() => null);
+
+      if (current === text) {
+        await navigator.clipboard.writeText("").catch(() => null);
+      }
+    }, 30000);
   };
 
-  // Formatear la fecha
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString("es-CO", {

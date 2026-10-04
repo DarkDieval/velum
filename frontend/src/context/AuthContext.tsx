@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
 import { signupRequest, signinRequest } from "../api/auth";
 import type { User, Credentials } from "../api/auth";
@@ -64,6 +64,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setDerivedKey(null);
   };
+
+  useEffect(() => {
+    if (!derivedKey) return;
+
+    const INACTIVITY_MS = 5 * 60 * 1000;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setDerivedKey(null);
+      }, INACTIVITY_MS);
+    };
+
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+    ];
+    events.forEach((event) => window.addEventListener(event, resetTimer));
+    resetTimer();
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach((event) => window.removeEventListener(event, resetTimer));
+    };
+  }, [derivedKey]);
 
   return (
     <AuthContext.Provider
